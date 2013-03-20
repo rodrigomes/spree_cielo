@@ -109,7 +109,7 @@ module SpreeCielo
         txn.nao_capturar_automaticamente
 
         response, log = process txn, :criada?
-        source.payment.send :record_log, log
+        #source.payment.send :record_log, log
         response
       end
 
