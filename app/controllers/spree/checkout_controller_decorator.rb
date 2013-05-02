@@ -1,3 +1,5 @@
+# coding: utf-8
+
 Spree::CheckoutController.class_eval do
   prepend_before_filter :request_authorization_at_cielo_hosted_page
 
@@ -12,7 +14,13 @@ Spree::CheckoutController.class_eval do
           return
         end
       else
-        flash[:error] = t :payment_processing_failed
+        flash[:error] = "Houve um problema com o pagamento"
+        if current_order.payments.first.source.status == :nao_autorizada then
+          flash[:error2] = "Pagamento não autorizado"
+        end
+        @order.errors.messages.each do |field,errors|
+          flash[field] = "#{field.to_s.titleize} #{errors.join ", "}"
+        end
       end
     end
     redirect_to checkout_state_path @order.state
@@ -43,7 +51,7 @@ Spree::CheckoutController.class_eval do
         payment.response_code = txn.tid
         payment.save
       else
-        flash[:error] = t :payment_processing_failed
+        flash.keep[:payment] = "Pagamento não foi salvo"
       end
 
       fire_event 'spree.checkout.update'
