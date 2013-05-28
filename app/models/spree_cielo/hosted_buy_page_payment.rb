@@ -69,6 +69,14 @@ module SpreeCielo
         preferences[:soft_descriptor] || ""
       end
 
+      def purchase money, source, options = {}
+        tid = source.payment.response_code
+
+        # validate payment via requisicao-consulta service
+        operation = Cieloz::RequisicaoConsulta.new dados_ec: ec, tid: tid
+        process_and_log operation, :capturada?
+      end
+
       def authorize money, source, options = {}
         tid = source.payment.response_code
 
@@ -87,7 +95,7 @@ module SpreeCielo
         process_and_log operation, :cancelada?
       end
 
-      def authorization_transaction order, source, callback_url
+      def authorization_transaction order, source, callback_url, capturar
         pedido = Cieloz::RequisicaoTransacao::DadosPedido
         .new numero: order.number,
           valor: (order.total * 100).round,
@@ -106,7 +114,11 @@ module SpreeCielo
         txn.forma_pagamento = pagamento
         txn.url_retorno = callback_url
         txn.autorizacao_direta
-        txn.nao_capturar_automaticamente
+        if capture then
+          txn.capturar_automaticamente
+        else
+          txn.nao_capturar_automaticamente
+        end
 
         response, log = process txn, :criada?
         #source.payment.send :record_log, log

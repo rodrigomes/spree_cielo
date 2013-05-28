@@ -44,7 +44,8 @@ Spree::CheckoutController.class_eval do
     url = checkout_state_path @order.state
     if payment.valid?
       callback_url = request.url.gsub request.path, cielo_callback_path
-      txn = method.authorization_transaction @order, payment.source, callback_url
+      capturar = Spree::Config[:auto_capture]
+      txn = method.authorization_transaction @order, payment.source, callback_url, capturar
 
       if txn and txn.success?
         url = txn.url_autenticacao
