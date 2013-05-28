@@ -95,7 +95,7 @@ module SpreeCielo
         process_and_log operation, :cancelada?
       end
 
-      def authorization_transaction order, source, callback_url, capturar
+      def authorization_transaction order, source, callback_url
         pedido = Cieloz::RequisicaoTransacao::DadosPedido
         .new numero: order.number,
           valor: (order.total * 100).round,
@@ -114,7 +114,7 @@ module SpreeCielo
         txn.forma_pagamento = pagamento
         txn.url_retorno = callback_url
         txn.autorizacao_direta
-        if capture then
+        if Spree::Config[:auto_capture] then
           txn.capturar_automaticamente
         else
           txn.nao_capturar_automaticamente
